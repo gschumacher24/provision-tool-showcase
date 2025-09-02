@@ -113,4 +113,25 @@ GitHub has documentation on [using secrets in GitHub actions](https://docs.githu
   - TOOLKIT_AUTH_TOKEN: An authentication token for the Toolkit can be generated on the [Toolkit Access page](https://toolkit.phdata.io/tool-access).
   - SNOWFLAKE_PRIVATE_KEY_PEM: The base64 encoded private key you generated earlier.
 
+### Create PR Ruleset
+GitHub has documentation on [creating a branch or tag ruleset](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository#creating-a-branch-or-tag-ruleset). You'll want to create a branch ruleset for your default branch that includes the following rules:
+- Require status checks to pass
+- Require branches to be up to date before merging
+
+---
+## GitHub Repo Troubleshooting
+If you're running into any issues running the Provision Tool workflow, try double-checking the following.
+
+### Provision Tool Workflow Name
+If you're not seeing Provision Tool build show up in the list of GitHuba actions when setting up the ruleset, double-check the top level "[name](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#name)" field in the provision.yaml file. If there is no top level "name" field in a workflow .yaml, GitHub should display the workflow file path relative to the root of the repository.
+
+### Toolkit toolkit.comf in Repo
+In order to run Toolkit CLI commands, you need to be in a Toolkit project directory. This means that the "provision" directory needs to have a toolkit.conf file for the workflow to run properly.
+
+### Project Name for Reporting
+If the report related toolkit commands in the provision.yaml file are failing, double-check the project name in the snapshot identifier.  It should follow the following format: "[SNOWFLAKE ACCOUNT IDENTIFIER OR ORGANIZATION NAME]:[plan or apply]:latest".
+
+### Double Check Default Branch
+If the provision workflow isn't running when you expect it to, double-check that the branch set to trigger the workflow in the provision.yaml file matches your default branch name.
+
 ---
