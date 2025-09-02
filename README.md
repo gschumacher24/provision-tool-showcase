@@ -97,3 +97,20 @@ The tool needs its own database for caching and concurrency control. You can cre
 `toolkit provision init --metadata`
 
 After running that command, you should see a new database in your Snowflake account named "PHDATA".
+
+---
+
+## GitHub Repo Setup
+Now that your Snowflake is setup with everything the Provison Tool needs, you can setup your repo to use the Provision Tool with GitHub actions.
+
+### Repo Secrets & Variables
+GitHub has documentation on [using secrets in GitHub actions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets), which includes instructions on how to add secrets and variables for a repo. You'll need to add the following variables and secrets to the repo:
+- Repository variables:
+  - TOOLKIT_CLI_VERSION: Whichever version of the Toolkit CLI you want to use. Check the [Toolkit Updates page](https://toolkit.phdata.io/updates) for the latest version.
+- Repository secrets:
+  - SNOWFLAKE_URL: The full JDBC URL for your Snowflake account. It should match the URL you put in the toolkit.conf file earlier.
+  - TOOLKIT_CLI_DOWNLOAD_TOKEN: On the [Toolkit Access page](https://toolkit.phdata.io/tool-access), there is a download url that can be used to download the Toolkit. The download token can be extracted from this url: `https://repo.phdata.io/[DOWNLOAD TOKEN]/toolkit-cli/maven/io/phdata/toolkit/toolkit-cli/[VERSION NUMBER]/toolkit-cli-[VERSION NUMBER].zip`
+  - TOOLKIT_AUTH_TOKEN: An authentication token for the Toolkit can be generated on the [Toolkit Access page](https://toolkit.phdata.io/tool-access).
+  - SNOWFLAKE_PRIVATE_KEY_PEM: The base64 encoded private key you generated earlier.
+
+---
