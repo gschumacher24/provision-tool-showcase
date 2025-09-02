@@ -63,9 +63,9 @@ jobs:
 #        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 #        run: toolkit provision show [TOOLKIT PROJECT NAME HERE]:apply:latest --output=provision-report.html
 
-      - name: Upload report
-        uses: actions/upload-artifact@v4
-        with:
-          name: provision-report
-          path: provision/provision-report.html
-          if-no-files-found: error
+#      - name: Upload report
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: provision-report
+#          path: provision/provision-report.html
+#          if-no-files-found: error
