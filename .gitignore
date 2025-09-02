@@ -1,0 +1,10 @@
+.DS_Store
+
+.envrc
+.env
+
+.idea
+*.iml
+
+*.log
+*.html
