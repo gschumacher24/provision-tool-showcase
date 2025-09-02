@@ -1,0 +1,99 @@
+## Purpose
+The purpose of this project is to showcase the phData Provision Tool and to provide instructions for initial setup in GitHub    .
+
+---
+
+## Pre-requisites
+- phData Toolkit CLI installed on your local machine. Follow the instructions [here](https://toolkit.phdata.io/docs/toolkit-cli#installation).
+  - Dependency: Java LTS versions 11, 17, or 21 must be installed on your machine to run the CLI.
+- A Snowflake account with the necessary permissions to create databases, schemas, and warehouses TODO.
+- A GitHub repository TODO
+- OpenSSL TODO
+
+---
+
+## Create Local Toolkit Project
+In order to run Provision Tool commands locally, you need to create a local Toolkit project. This can be done by running the [toolkit init command](https://toolkit.phdata.io/docs/toolkit-cli#init-command) in your terminal, in the directory you wish to create the project:
+
+`toolkit init`
+
+That should create the following files:
+- .gitignore
+- .toolkit-metadata
+- toolkit.conf
+
+The toolkit.conf file is where you will configure the Provision Tool settings. You can find more information about the configuration options [here](https://toolkit.phdata.io/docs/provision#configuration). Those instructions will be recorded here for convenience.
+
+---
+
+## Snowflake Environment Setup
+The Provision Tool documentation has instructions for the [snowflake environment setup](https://toolkit.phdata.io/docs/provision#snowflake-environment-setup).
+
+### Create Dedicated Resources
+The Provision Tool requires a dedicated Snowflake environment with the following components:
+- Warehouse
+- Roles
+- User
+- Resource monitor
+
+You can generate the SQL necessary to create these components by running the [Provision Tool init command](https://toolkit.phdata.io/docs/provision#init-command) in your terminal from within your Toolkit project: `toolkit provision init --generate-sql`
+
+Execute the generated SQL in your Snowflake account to create the required components.
+
+### Setup Key-Pair Authentication
+Key-pair authentication is needed to have the Provision Tool authenticate to Snowflake without using a password.  Snowflake has instructions for [how to configure key-pair authentication](https://docs.snowflake.com/en/user-guide/key-pair-auth#configuring-key-pair-authentication):
+
+Generate a private key (without encryption) by running the following command in your terminal: 
+`openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out rsa_key.p8 -nocrypt`
+
+Generate a public key, based on the private key you just created, by running the following command in your terminal: 
+`openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub`
+
+While you're here, you'll need to encode the private key in base64 format to use in GitHub repo. To do this, run the following command in your terminal: 
+`base64 -i rsa_key.p8 `
+
+Keep the generated value handy for later.
+
+To grant the privilege to assign a public key to the Provision Tool user, run the following SQL command in your Snowflake account: 
+`GRANT MODIFY PROGRAMMATIC AUTHENTICATION METHODS ON USER PROVISION_USER TO ROLE PROVISION_ADMIN;`
+
+To assign the public key to the Provision Tool user, run the following SQL command in your Snowflake account, replacing "[PUBLIC KEY HERE]" with the contents of the rsa_key.pub file you generated earlier. Do not include the header nor footer lines in this SQL command, but do include the line breaks: 
+`ALTER USER PROVISION_USER SET RSA_PUBLIC_KEY='[PUBLIC KEY HERE]';`
+
+To verify that the public key was assigned correctly, run the following SQL command in your Snowflake account, recording the output:
+```
+DESC USER PROVISION_USER
+  ->> SELECT SUBSTR(
+        (SELECT "value" FROM $1
+           WHERE "property" = 'RSA_PUBLIC_KEY_FP'),
+        LEN('SHA256:') + 1) AS key;
+```
+
+The value from the previous Snowflake SQL command should match the output of running the following command in your terminal: 
+`openssl rsa -pubin -in rsa_key.pub -outform DER | openssl dgst -sha256 -binary | openssl enc -base64`
+
+### Configure JDBC Connection Info
+The toolkit.conf file created earlier needs to be updated with the connection information for your Snowflake account. Update the `provision` section of the file to look like the following:
+```
+provision {
+  connection {
+    url = "jdbc:snowflake://[SNOWFLAKE ACCOUNT IDENTIFIER HERE].snowflakecomputing.com"
+    properties {
+      user = PROVISION_USER
+      role = PROVISION_ADMIN
+      private_key_file = rsa_key.p8
+    }
+  }
+}
+```
+
+You can find additional connection options in the [Provision Tool connection documentation](https://toolkit.phdata.io/docs/provision#connection).
+
+Snowflake has documentation on [account identifiers](https://docs.snowflake.com/en/user-guide/admin-account-identifier) and where to find them. One option is opening the account info in the Snowsight UI.  Alternatively, this SQL command can also be used to get the account identifier: 
+`SELECT CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME() AS ACCOUNT_IDENTIFIER;`
+
+### Setup Metadata Database
+The tool needs its own database for caching and concurrency control. You can create the tool metadata in Snowflake by executing the [Provision Tool init command](https://toolkit.phdata.io/docs/provision#init-command) in your teminal from within your Tookit project: 
+`toolkit provision init --metadata`
+
+After running that command, you should see a new database in your Snowflake account named "PHDATA".
