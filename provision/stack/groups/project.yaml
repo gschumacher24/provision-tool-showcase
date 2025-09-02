@@ -5,3 +5,7 @@ entries:
     env: dev
   - project_name: example_project
     env: prod
+  - project_name: marketing
+    env: dev
+  - project_name: marketing
+    env: prod
