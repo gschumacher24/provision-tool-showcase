@@ -1,0 +1,12 @@
+.DS_Store
+.envrc
+.env
+
+logs/
+snapshots/
+
+*.log
+*.html
+.toolkit-tutorial*
+
+plan.sql

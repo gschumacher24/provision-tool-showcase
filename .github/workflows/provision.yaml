@@ -1,0 +1,67 @@
+name: Provision Tool
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - "*"
+    paths:
+      - "provision/**"
+      - .github/workflows/provision.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - "provision/**"
+      - .github/workflows/provision.yaml
+
+defaults:
+  run:
+    working-directory: provision
+
+env:
+  TOOLKIT_AUTH_TOKEN: ${{ secrets.toolkit_auth_token }}
+  SNOWFLAKE_URL: ${{ secrets.snowflake_url }}
+
+jobs:
+  build:
+    name: Provision Tool
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run common setup
+        uses: ./.github/actions/common-setup
+        with:
+          toolkit_cli_download_token: ${{ secrets.toolkit_cli_download_token }}
+          toolkit_cli_version: ${{ vars.toolkit_cli_version }}
+          snowflake_private_key_pem: ${{ secrets.snowflake_private_key_pem }}
+
+      - name: Create metadata
+        run: toolkit provision init --metadata
+
+      - name: Plan changes
+        if: github.event_name == 'pull_request'
+        run: toolkit provision apply --plan
+
+      - name: Generate report
+        if: github.event_name == 'pull_request'
+        run: toolkit provision show pevsaub-ma03487:plan:latest --output=provision-report.html
+
+      - name: Apply changes
+        run: toolkit provision apply
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+      - name: Generate report
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: toolkit provision show pevsaub-ma03487:apply:latest --output=provision-report.html
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: provision-report
+          path: provision/provision-report.html
+          if-no-files-found: error
