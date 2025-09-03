@@ -1,7 +1,7 @@
 defaults:
   warehouse_size: XSMALL
 entries:
-  - project_name: example_project
+  - project_name: marketing
     env: dev
-  - project_name: example_project
+  - project_name: marketing
     env: prod
