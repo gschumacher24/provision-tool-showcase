@@ -5,3 +5,7 @@ entries:
     env: dev
   - project_name: marketing
     env: prod
+  - project_name: finance
+    env: dev
+  - project_name: finance
+    env: prod
