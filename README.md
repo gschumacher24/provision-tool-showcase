@@ -135,3 +135,8 @@ If the report related toolkit commands in the provision.yaml file are failing, d
 If the provision workflow isn't running when you expect it to, double-check that the branch set to trigger the workflow in the provision.yaml file matches your default branch name.
 
 ---
+## References
+The following repositories were used as references when creating this project:
+- [toolkit-snowflake-demo](https://github.com/phdata/toolkit-snowflake-demo)
+- [provision-tool-templates](https://github.com/phdata/provision-tool-templates)
+- [provision_tool_test_repo](https://bitbucket.org/phdata/provision_tool_test_repo/src/master/)
